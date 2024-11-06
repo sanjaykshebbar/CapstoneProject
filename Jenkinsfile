@@ -1,49 +1,88 @@
 pipeline {
     agent any
     environment {
-        DOCKER_CREDENTIALS = credentials('docker-hub-credentials')
-        GIT_CREDENTIALS = credentials('github-credentials')
-        AWS_CREDENTIALS = credentials('aws-secret-key-1')
+        DOCKER_IMAGE = "sanjaykshebbar/asi-insurance-app:latest"
+        AWS_ACCESS_KEY_ID = credentials('aws-access-key-1')
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key-1')
+        GITHUB_CREDENTIALS = credentials('github-credentials')
     }
+
     stages {
-        stage('Clone Repository') {
+        stage('Pull Repo') {
             steps {
-                git credentialsId: "${GIT_CREDENTIALS}", url: 'https://github.com/sanjaykshebbar/CapstoneProject.git', branch: 'main'
+                // Pull the latest repo from GitHub
+                git credentialsId: 'github-credentials', url: 'https://github.com/sanjaykshebbar/ASI-Insurance-DevOps.git'
             }
         }
-        stage('Terraform Apply') {
-            steps {
-                    sh 'terraform init'
-                    sh 'terraform apply -auto-approve'
-                }
-            }
-        
-        stage('Update Ansible Hosts') {
-            steps {
-                sh 'chmod +x ./update_hosts.sh'  // Ensure the script is executable
-                sh './update_hosts.sh'  // Run the script to update hosts.ini
-            }
-        }
+
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("sanjaykshebbar/asi-insurance-app:${env.BUILD_ID}")
+                    // Build the Docker image from the Dockerfile
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
                 }
             }
         }
-        stage('Push to Docker Hub') {
+
+        stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${DOCKER_CREDENTIALS}") {
-                        docker.image("sanjaykshebbar/asi-insurance-app:${env.BUILD_ID}").push('latest')
-                    }
+                    // Login to Docker Hub
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+
+                    // Push the Docker image to Docker Hub
+                    sh 'docker push ${DOCKER_IMAGE}'
                 }
             }
         }
-        stage('Deploy with Ansible') {
+
+        stage('Initialize Terraform') {
             steps {
-                ansiblePlaybook credentialsId: 'ansible-ssh-key', inventory: 'hosts.ini', playbook: 'deploy-playbook.yml'
+                script {
+                    // Initialize Terraform for infrastructure creation
+                    sh 'terraform init'
+                }
             }
+        }
+
+        stage('Apply Terraform') {
+            steps {
+                script {
+                    // Apply the Terraform plan to create the EC2 instance and security group
+                    sh 'terraform apply -auto-approve'
+                }
+            }
+        }
+
+        stage('Update Ansible Hosts') {
+            steps {
+                script {
+                    // Get the EC2 instance public IP and update the hosts file
+                    def output = sh(script: "terraform output -json", returnStdout: true).trim()
+                    def ec2PublicIp = readJSON(text: output).ec2_public_ip.value
+                    
+                    // Update the hosts file with the EC2 public IP
+                    sh """
+                    echo '[webserver]' > hosts
+                    echo '${ec2PublicIp}' >> hosts
+                    """
+                }
+            }
+        }
+
+        stage('Run Ansible Playbook') {
+            steps {
+                script {
+                    // Run the Ansible playbook to deploy the Docker container
+                    sh 'ansible-playbook -i hosts deploy-playbook.yml'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
         }
     }
 }
