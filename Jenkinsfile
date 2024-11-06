@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('Clone Repository') {
             steps {
-                git credentialsId: "${GIT_CREDENTIALS}", url: 'https://github.com/sanjaykshebbar/CapstoneProject.git'
+                git credentialsId: "${GIT_CREDENTIALS}", url: 'https://github.com/sanjaykshebbar/CapstoneProject.git', branch: 'main'
             }
         }
         stage('Install NodeJS') {
