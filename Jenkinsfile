@@ -11,7 +11,8 @@ pipeline {
         stage('Pull Repo') {
             steps {
                 // Pull the latest repo from GitHub
-                git credentialsId: 'github-credentials', url: 'https://github.com/sanjaykshebbar/CapstoneProject.git', branch: 'main'
+                git credentialsId: 'github-credentials', url: 'https://github.com/sanjaykshebbar/ASI-Insurance-DevOps.git', branch: 'main'
+            }
         }
 
         stage('Build Docker Image') {
@@ -81,7 +82,7 @@ pipeline {
 
     post {
         always {
-            cleanWs()
+            cleanWs()  // Clean workspace after pipeline execution
         }
     }
 }
