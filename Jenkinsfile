@@ -11,12 +11,6 @@ pipeline {
                 git credentialsId: "${GIT_CREDENTIALS}", url: 'https://github.com/sanjaykshebbar/CapstoneProject.git', branch: 'main'
             }
         }
-        stage('Install NodeJS') {
-            steps {
-                sh 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash'
-                sh 'nvm install 22'
-            }
-        }
         stage('Terraform Apply') {
             steps {
                 dir('terraform-directory') {
