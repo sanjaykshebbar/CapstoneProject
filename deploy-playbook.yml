@@ -1,28 +1,40 @@
 ---
-- hosts: aws-host
-  become: true
+- name: Deploy Docker Container on EC2
+  hosts: webserver
+  become: yes
+
   tasks:
-    - name: Update apt repo and install Docker
+    - name: Update apt cache
       apt:
         update_cache: yes
+
+    - name: Install Docker
+      apt:
         name: docker.io
         state: present
 
-    - name: Add user to the Docker group
+    - name: Start and enable Docker
+      service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add user to Docker group
       user:
-        name: ubuntu
-        groups: docker
+        name: "{{ ansible_user }}"
+        group: docker
 
     - name: Pull Docker image
       docker_image:
-        name: sanjaykshebbar/asi-insurance-app
-        tag: latest
+        name: "sanjaykshebbar/asi-insurance-app"
+        tag: "latest"
         source: pull
 
     - name: Run Docker container
       docker_container:
-        name: asi-app
-        image: sanjaykshebbar/asi-insurance-app:latest
+        name: "asi-insurance-app"
+        image: "sanjaykshebbar/asi-insurance-app:latest"
         state: started
-        ports:
-          - "80:8080"
+        restart_policy: always
+        published_ports:
+          - "80:80"
