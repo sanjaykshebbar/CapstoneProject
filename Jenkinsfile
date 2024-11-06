@@ -11,8 +11,7 @@ pipeline {
         stage('Pull Repo') {
             steps {
                 // Pull the latest repo from GitHub
-                git credentialsId: 'github-credentials', url: 'https://github.com/sanjaykshebbar/ASI-Insurance-DevOps.git' 'main'
-            }
+                git credentialsId: 'github-credentials', url: 'https://github.com/sanjaykshebbar/CapstoneProject.git', branch: 'main'
         }
 
         stage('Build Docker Image') {
