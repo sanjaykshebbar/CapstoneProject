@@ -13,12 +13,11 @@ pipeline {
         }
         stage('Terraform Apply') {
             steps {
-                dir('terraform-directory') {
                     sh 'terraform init'
                     sh 'terraform apply -auto-approve'
                 }
             }
-        }
+        
         stage('Update Ansible Hosts') {
             steps {
                 sh 'chmod +x update_hosts.sh'  // Ensure the script is executable
