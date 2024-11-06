@@ -7,7 +7,7 @@ provider "aws" {
 
 # EC2 instance resource configuration
 resource "aws_instance" "docker_host" {
-  ami           = "ami-0c55b159cbfafe1f0" # Example AMI (Ubuntu)
+  ami           = "ami-0866a3c8686eaeeba" # Example AMI (Ubuntu)
   instance_type = "t2.micro"
   key_name      = "DevOps-Capstone-Project"
 
