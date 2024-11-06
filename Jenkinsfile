@@ -13,7 +13,8 @@ pipeline {
         }
         stage('Install NodeJS') {
             steps {
-                sh 'sudo apt update && sudo apt install -y nodejs npm'
+                sh 'curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash'
+                sh 'nvm install 22'
             }
         }
         stage('Terraform Apply') {
