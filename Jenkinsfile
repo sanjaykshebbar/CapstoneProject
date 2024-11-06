@@ -20,7 +20,7 @@ pipeline {
         
         stage('Update Ansible Hosts') {
             steps {
-                sh 'chmod +x update_hosts.sh'  // Ensure the script is executable
+                sh 'chmod +x ./update_hosts.sh'  // Ensure the script is executable
                 sh './update_hosts.sh'  // Run the script to update hosts.ini
             }
         }
